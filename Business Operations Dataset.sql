@@ -36,16 +36,17 @@ order by sum(revenue) desc
 --● What is the average customer feedback score for products in the Accessories category, and which product received the highest score?
 
 
-select avg(customer_feedback_score)as avg_feedback from BOD
-where product_name in (
-    select product_name from BOD
-    where category = 'Accessories'
-     and customer_feedback_score = (
-    select max(customer_feedback_score) as highest_feedback
-    from BOD 
-    where category = 'Accessories'
-    )
-    );
+    SELECT 
+    product_name,
+    customer_feedback_score,
+  AVG(customer_feedback_score) OVER () AS avg_feedback
+FROM BOD
+WHERE category = 'Accessories'
+  AND customer_feedback_score = (
+    SELECT MAX(customer_feedback_score)
+    FROM BOD
+    WHERE category = 'Accessories'
+  );
 
 
 
@@ -53,19 +54,23 @@ where product_name in (
 --● Which supplier had the highest total inventory level across all
 --departments?
 
-select sum(inventory_level)as total_inventory,
-department,supplier_name from BOD 
-group by department,supplier_name
+
+select top 1 supplier_name ,sum(inventory_level)as total_inventory
+ from BOD 
+group by supplier_name
 order by total_inventory desc
 
 --● Which product in the Gadgets category had the lowest inventory level?
 
 select * from BOD
 
-select sum(inventory_level)as lowest_inventory,
-product_name from BOD
-where category = 'gadgets'
-group by product_name
+SELECT 
+    product_name,
+    SUM(inventory_level) AS lowest_inventory
+FROM BOD
+WHERE category = 'gadgets'
+GROUP BY product_name
+ORDER BY lowest_inventory ASC
 
 
 --● Employee Training & Sales:
@@ -211,4 +216,5 @@ create function dbo.calculates_profit(
      drop index idx_company_id on BOD
 
    CREATE CLUSTERED INDEX idx_company_id
+
 ON BOD (company_id);
